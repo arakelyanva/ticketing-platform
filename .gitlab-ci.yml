@@ -1,0 +1,18 @@
+stages:
+- lint
+- test
+- security-check
+- secret-detection
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+sast:
+  stage: security-check
+include:
+- template: Security/SAST.gitlab-ci.yml
+- template: Security/Secret-Detection.gitlab-ci.yml
+variables:
+  SECRET_DETECTION_ENABLED: 'true'
+secret_detection:
+  stage: secret-detection

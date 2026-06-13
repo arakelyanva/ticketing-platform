@@ -1,0 +1,19 @@
+services:
+  # FastAPI Application
+  ticketing-platform-app:
+    image: fastapi-demo-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: TICKETING_PLATFORM_APP
+    ports:
+      - "${FASTAPI_PORT:-8000}:${FASTAPI_PORT:-8000}"
+    environment:
+      - FASTAPI_PORT=${FASTAPI_PORT:-8000}
+      - DATABASE_URL=${DATABASE_URL}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${FASTAPI_PORT:-8000}/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s

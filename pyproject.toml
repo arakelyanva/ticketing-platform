@@ -1,0 +1,12 @@
+[project]
+name = "ticketing-platform"
+version = "0.1.0"
+description = "Small fragment of a real-world Ticketing Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "alembic>=1.18.4",
+    "fastapi[standard]>=0.136.3",
+    "sqlalchemy>=2.0.50",
+]
