@@ -30,8 +30,8 @@ async def get_booking_repository(session: AsyncSession = Depends(get_session)) -
 @router.post("/{booking_id}/pay", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def process_payment(
     booking_id: UUID,
+    payload: PaymentCreate,
     idempotency_key: str = Header(None, alias="Idempotency-Key"),
-    payload=PaymentCreate,
     repo: BookingRepository = Depends(get_booking_repository)
 ):
     return await repo.process_payment(booking_id, idempotency_key, payload)

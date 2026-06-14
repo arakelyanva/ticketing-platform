@@ -21,8 +21,9 @@ async def cleanup_expired_holds():
                 )
                 await session.execute(statement)
                 await session.commit()
+
+            print("[WORKER]: Cleanup of expired bookings was performed.")
         except asyncio.CancelledError:
             break
         except Exception as e:
             print(f"[WORKER ERROR] Error executing `cleanup_expired_holds` worker: {e}")
-

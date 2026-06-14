@@ -66,8 +66,6 @@ class BookingRepository:
             message="Payment captured"
         )
 
-        print(f"PAYLOADDDDDD: {payload.__dict__}")
-
         new_payment = Payment(
             idempotency_key=idempotency_key,
             booking_id=response.booking.id,
