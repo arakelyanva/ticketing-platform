@@ -1,7 +1,7 @@
 services:
   # FastAPI Application
   ticketing-platform-app:
-    image: fastapi-demo-app
+    image: ticketing-platform-app
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,6 +9,7 @@ services:
     ports:
       - "${FASTAPI_PORT:-8000}:${FASTAPI_PORT:-8000}"
     environment:
+      - FASTAPI_ENV=${FASTAPI_ENV:-dev}
       - FASTAPI_PORT=${FASTAPI_PORT:-8000}
       - DATABASE_URL=${DATABASE_URL}
     healthcheck:

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Optional, ClassVar
 from uuid import UUID, uuid4
@@ -24,10 +24,14 @@ class Booking(Base):
     tickets_count: Mapped[int] = mapped_column(Integer)
     status: Mapped[BookingStatus] = mapped_column(default=BookingStatus.HELD, index=True)
 
-    expires_at: Mapped[datetime] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc)
     )
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc) + timedelta(minutes=15)
+    )
 
     event: Mapped["Event"] = relationship(back_populates="bookings")
+    payments: Mapped["Payment"] = relationship(back_populates="booking")

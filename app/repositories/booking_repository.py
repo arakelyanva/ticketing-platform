@@ -1,6 +1,7 @@
 import json
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from uuid import UUID
 from datetime import datetime, timezone
@@ -13,32 +14,43 @@ class BookingRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def process_payment(idempotency_key: str, payload: PaymentCreate) -> PaymentResponse:
+    async def process_payment(
+        self,
+        booking_id: UUID,
+        idempotency_key: str,
+        payload: PaymentCreate
+    ) -> PaymentResponse:
         if not idempotency_key:
             raise IdempotencyKeyMissing
 
-        payment_record = await session.get(Payment, idempotency_key)
-        if payment_record:
-            return PaymentResponse(
-                status=payment_record.status,
-                booking_id=payment_record.booking_id,
-                message=payment_record.message
-            )
+        query = (
+            select(Payment)
+            .where(Payment.idempotency_key == idempotency_key)
+            .options(selectinload(Payment.booking))
+        )
 
-        booking = await session.get(Booking, booking_id)
+        result = await self.session.scalars(query)
+        payment_record = result.first()
+
+        if payment_record:
+            return payment_record
+
+        booking = await self.session.get(Booking, booking_id)
         if not booking:
-            raise BookingNotFound
+            raise BookingNotFound(booking_id)
 
         if booking.status == BookingStatus.PAID:
             return PaymentResponse(
                 status=PaymentStatus.SUCCESS,
-                booking_id=booking.id,
+                booking=booking,
                 message="Already processed and settled"
             )
 
-        if booking.status == BookingStatus.CANCELED or booking.expires_at < datetime.now(timezone.utc):
+        expired_utc = booking.expires_at.replace(tzinfo=timezone.utc)
+        time_now_utc = datetime.now(timezone.utc)
+        if booking.status == BookingStatus.CANCELED or expired_utc < time_now_utc:
             booking.status = BookingStatus.CANCELED
-            await session.commit()
+            await self.session.commit()
             raise BookingExpired
 
         # Lets assume here goes actual payment gateway operations -->
@@ -46,23 +58,25 @@ class BookingRepository:
         # <--
 
         booking.status = BookingStatus.PAID
-        session.add(booking)
+        self.session.add(booking)
 
         response = PaymentResponse(
             status=PaymentStatus.SUCCESS,
-            booking_id=booking.id,
+            booking=booking,
             message="Payment captured"
         )
 
+        print(f"PAYLOADDDDDD: {payload.__dict__}")
+
         new_payment = Payment(
             idempotency_key=idempotency_key,
-            booking_id=response.booking_id,
+            booking_id=response.booking.id,
             card_token=payload.card_token,
             status=response.status,
             message=response.message
         )
 
-        session.add(new_payment)
-        await session.commit()
+        self.session.add(new_payment)
+        await self.session.commit()
 
         return response

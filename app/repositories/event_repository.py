@@ -1,11 +1,12 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from uuid import UUID
 from typing import List
 from datetime import datetime, timezone, timedelta
 
 from app.core.db import get_event_lock
-from app.models import Booking, BookingStatus
+from app.models import Event, Booking, BookingStatus
 from app.schemas import EventCreate, EventResponse, BookingCreate, BookingResponse
 from app.exceptions import EventNotFound, TicketsUnavailable
 
@@ -13,38 +14,45 @@ class EventRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all() -> List[EventResponse]:
-        return await self.session.scalars(select(Event)).all()
+    async def get_all(self) -> List[EventResponse]:
+        query = (select(Event).options(selectinload(Event.bookings)))
 
-    async def create(payload: EventCreate) -> EventResponse:
-        new_event = Event(payload)
+        return (await self.session.scalars(query)).all()
+
+    async def create(self, payload: EventCreate) -> EventResponse:
+        new_event = Event(
+            title=payload.title,
+            total_tickets=payload.total_tickets,
+            ticket_price=payload.ticket_price
+        )
 
         self.session.add(new_event)
         await self.session.commit()
-        await self.session.refresh(new_event)
-
-        return EventResponse(
-            id=new_event.id,
-            title=new_event.title,
-            total_tickets=new_event.total_tickets,
-            available_tickets=new_event.total_tickets
+        await self.session.refresh(
+            new_event,
+            attribute_names=["bookings"]
         )
 
-    async def get_event(event_id: UUID) -> EventResponse:
-        event = await self.session.get(Event, event_id)
+        return new_event
+
+    async def get_event(self, event_id: UUID) -> EventResponse:
+        event = await self.session.get(
+            Event,
+            event_id,
+            options=[selectinload(Event.bookings)]
+        )
 
         if not event:
             raise EventNotFound(event_id)
 
-        return EventResponse(
-            id=event.id,
-            title=event.title,
-            total_tickets=event.total_tickets,
-            available_tickets=event.available_tickets
-        )
+        return event
 
-    async def book_ticket(event_id: UUID, payload: BookingCreate) -> BookingResponse:
-        event = await self.session.get(Event, event_id)
+    async def book_ticket(self, event_id: UUID, payload: BookingCreate) -> BookingResponse:
+        event = await self.session.get(
+            Event,
+            event_id,
+            options=[selectinload(Event.bookings)]
+        )
 
         if not event:
             raise EventNotFound(event_id)
@@ -58,6 +66,7 @@ class EventRepository:
 
             new_booking = Booking(
                 event_id=event.id,
+                user_id=payload.user_id,
                 tickets_count=1,
                 status=BookingStatus.HELD,
                 expires_at=datetime.now(timezone.utc) + timedelta(minutes=15)

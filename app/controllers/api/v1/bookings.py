@@ -34,4 +34,4 @@ async def process_payment(
     payload=PaymentCreate,
     repo: BookingRepository = Depends(get_booking_repository)
 ):
-    return await repo.process_payment(idempotency_key, payload)
+    return await repo.process_payment(booking_id, idempotency_key, payload)

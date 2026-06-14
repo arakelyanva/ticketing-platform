@@ -4,7 +4,7 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Numeric, DateTime, func, select
+from sqlalchemy import String, Integer, Numeric, DateTime, func, select, inspect
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.core.db import Base
@@ -28,8 +28,11 @@ class Event(Base):
     bookings: Mapped[List["Booking"]] = relationship(back_populates="event")
 
     @hybrid_property
-    @classmethod
     def available_tickets(self) -> int:
+        insp = inspect(self)
+        if insp.transient or "bookings" in insp.unloaded:
+            return self.total_tickets
+
         return self.total_tickets - sum(
             booking.tickets_count
             for booking in self.bookings
@@ -45,6 +48,6 @@ class Event(Base):
                 Booking.event_id == cls.id,
                 Booking.status.in_([BookingStatus.HELD, BookingStatus.PAID])
             )
-            .correlate(cls)
+            .correlate_except(Booking)
             .scalar_subquery()
         )

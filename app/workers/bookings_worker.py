@@ -1,5 +1,6 @@
 import asyncio
 from sqlalchemy import update
+from datetime import datetime, timezone
 
 from app.core.db import AsyncSessionLocal
 from app.models import Booking, BookingStatus
@@ -11,7 +12,7 @@ async def cleanup_expired_holds():
             await asyncio.sleep(60)
 
             async with AsyncSessionLocal() as session:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
 
                 statement = (
                     update(Booking)
