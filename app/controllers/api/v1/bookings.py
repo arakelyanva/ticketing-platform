@@ -6,7 +6,7 @@ from app.core.db import get_session
 
 from app.schemas import PaymentCreate, PaymentResponse
 from app.repositories import BookingRepository
-from app.exceptions import IdempotencyKeyMissing, BookingNotFound, BookingExpired
+from app.exceptions import IdempotencyKeyMissing, BookingNotFound, BookingExpired, PaymentAlreadyExists
 
 async def catch_router_errors():
     try:
@@ -15,7 +15,7 @@ async def catch_router_errors():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     except BookingNotFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
-    except BookingExpired as exc:
+    except (BookingExpired, PaymentAlreadyExists) as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
 
 router = APIRouter(

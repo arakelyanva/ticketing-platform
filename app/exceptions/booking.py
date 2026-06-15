@@ -1,5 +1,6 @@
 from uuid import UUID
 from app.exceptions.base_exceptions import RepositoryException
+from app.models import PaymentStatus
 
 class IdempotencyKeyMissing(RepositoryException):
     """Raised when 'Idempotency-Key' header is missing."""
@@ -15,3 +16,8 @@ class BookingExpired(RepositoryException):
     """Raised when the booking is already expired."""
     def __init__(self):
         super().__init__("Cannot process payment: Hold expired or canceled.")
+
+class PaymentAlreadyExists(RepositoryException):
+    """Raised when the booking is already expired."""
+    def __init__(self, status: PaymentStatus):
+        super().__init__(f"Payment with given Idempotency-Key and status={status} already exists.")

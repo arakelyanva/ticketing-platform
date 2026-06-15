@@ -1,5 +1,5 @@
 from app.exceptions.event import EventNotFound, TicketsUnavailable, InvalidUserId
-from app.exceptions.booking import IdempotencyKeyMissing, BookingNotFound, BookingExpired
+from app.exceptions.booking import IdempotencyKeyMissing, BookingNotFound, BookingExpired, PaymentAlreadyExists
 
 __all__ = [
     "EventNotFound",
@@ -7,5 +7,6 @@ __all__ = [
     "InvalidUserId",
     "IdempotencyKeyMissing",
     "BookingNotFound",
-    "BookingExpired"
+    "BookingExpired",
+    "PaymentAlreadyExists"
 ]
