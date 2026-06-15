@@ -8,7 +8,6 @@ variables:
   PYTHONPATH:   "$CI_PROJECT_DIR"
   UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
   FASTAPI_ENV:  "test"
-  DATABASE_URL: "sqlite+aiosqlite:///:memory:" # We will use in-memory SQLite for testing
 
 cache:
   key:
@@ -35,6 +34,8 @@ run_tests:
     - uv sync --all-groups
   script:
     - uv run pytest --cov=app tests/ --cov-report=term-missing
+  variables:
+    DATABASE_URL: "sqlite+aiosqlite:///:memory:" # We will use in-memory SQLite for testing
   coverage: '/TOTAL.*\s+(\d+%)/'
   artifacts:
     name: "test-coverage-report"
