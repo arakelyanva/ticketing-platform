@@ -1,0 +1,103 @@
+name: CI Platform Pipeline
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  PYTHONPATH: "${{ github.workspace }}"
+  FASTAPI_ENV: "test"
+  UV_CACHE_DIR: "${{ github.workspace }}/.uv-cache"
+
+jobs:
+  lint_code:
+    name: Lint Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install and Cache uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run Ruff Linter
+        run: uv run ruff check
+
+  run_tests:
+    name: Run Test Suites
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:" # We will use in-memory SQLite for testing
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install and Cache uv
+        uses: astral-sh/setup-uv@v8
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install all dependency groups
+        run: uv sync --all-groups
+
+      - name: Execute Pytest with Coverage
+        run: uv run pytest --cov=app tests/ --cov-report=term-missing
+
+      - name: Upload Test Coverage Artifacts
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-coverage-report
+          path: .coverage
+          retention-days: 7
+
+  sast:
+    name: CodeQL Security Analysis (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Initialize CodeQL Analysis Engine
+        uses: github/codeql-action/init@v4
+        with:
+          languages: python
+
+      - name: Perform CodeQL Vulnerability Scanning
+        uses: github/codeql-action/analyze@v4
+
+  secret_detection:
+    name: Secret & Token Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Required for GitGuardian or Gitleaks history scanning
+
+      - name: Run Trufflehog Secret Scanner
+        uses: trufflesecurity/trufflehog@main
+        with:
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
