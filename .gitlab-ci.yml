@@ -6,8 +6,9 @@ stages:
 
 variables:
   PYTHONPATH:   "$CI_PROJECT_DIR"
-  FASTAPI_ENV:  "test"
   UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+  FASTAPI_ENV:  "test"
+  DATABASE_URL: "sqlite+aiosqlite:///:memory:" # We will use in-memory SQLite for testing
 
 cache:
   key:
