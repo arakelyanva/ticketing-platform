@@ -1,12 +1,12 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Optional, ClassVar
 from uuid import UUID, uuid4
 
+from sqlalchemy import DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, String, Integer, DateTime
 
 from app.core.db import Base
+
 
 # custom Enum class for handling BookingStatus states
 class BookingStatus(str, Enum):

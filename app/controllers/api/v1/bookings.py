@@ -1,22 +1,28 @@
-from fastapi import APIRouter, Header, Depends, status
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
-
-from app.schemas import PaymentCreate, PaymentResponse
+from app.exceptions import (
+    BookingExpired,
+    BookingNotFound,
+    IdempotencyKeyMissing,
+    PaymentAlreadyExists,
+)
 from app.repositories import BookingRepository
-from app.exceptions import IdempotencyKeyMissing, BookingNotFound, BookingExpired, PaymentAlreadyExists
+from app.schemas import PaymentCreate, PaymentResponse
+
 
 async def catch_router_errors():
     try:
         yield
     except IdempotencyKeyMissing as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except BookingNotFound as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (BookingExpired, PaymentAlreadyExists) as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 router = APIRouter(
     prefix="/bookings",

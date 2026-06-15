@@ -1,23 +1,23 @@
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
-
-from app.schemas import EventCreate, EventResponse, BookingCreate, BookingResponse
+from app.exceptions import EventNotFound, InvalidUserId, TicketsUnavailable
 from app.repositories import EventRepository
-from app.exceptions import EventNotFound, TicketsUnavailable, InvalidUserId
+from app.schemas import BookingCreate, BookingResponse, EventCreate, EventResponse
+
 
 async def catch_router_errors():
     try:
         yield
     except InvalidUserId as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except EventNotFound as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except TicketsUnavailable as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 router = APIRouter(
     prefix="/events",
@@ -28,7 +28,7 @@ router = APIRouter(
 async def get_event_repository(session: AsyncSession = Depends(get_session)) -> EventRepository:
     return EventRepository(session)
 
-@router.get("/", response_model=List[EventResponse], status_code=status.HTTP_200_OK)
+@router.get("/", response_model=list[EventResponse], status_code=status.HTTP_200_OK)
 async def get_all_events(repo: EventRepository = Depends(get_event_repository)):
     return await repo.get_all()
 

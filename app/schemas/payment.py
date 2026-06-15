@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.models import BookingStatus, PaymentStatus
+
 
 class PaymentBooking(BaseModel):
     id: UUID

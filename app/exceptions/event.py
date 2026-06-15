@@ -1,5 +1,7 @@
 from uuid import UUID
+
 from app.exceptions.base_exceptions import RepositoryException
+
 
 class EventNotFound(RepositoryException):
     """Raised when an event does not exist in the database."""

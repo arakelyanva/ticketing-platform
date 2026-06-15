@@ -1,9 +1,11 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
-from typing import List
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 from app.models import BookingStatus
+
 
 class EventCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
@@ -33,6 +35,6 @@ class EventResponse(BaseModel):
     created_at: datetime
     total_tickets: int
     available_tickets: int
-    bookings: List[EventBookings] = []
+    bookings: list[EventBookings] = []
 
     model_config = ConfigDict(from_attributes=True)

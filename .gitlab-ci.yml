@@ -5,7 +5,42 @@ stages:
 - secret-detection
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONPATH:   "$CI_PROJECT_DIR"
+  FASTAPI_ENV:  "test"
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+
+cache:
+  key:
+    files:
+      - uv.lock
+  paths:
+    - .uv-cache/
+
+lint_code:
+  stage: lint
+  image: python:3.10-slim
+  before_script:
+    - pip install uv
+    - uv sync
+  script:
+    - uv run ruff check
+  allow_failure: false
+
+run_tests:
+  stage: test
+  image: python:3.10-slim
+  before_script:
+    - pip install uv
+    - uv sync --all-groups
+  script:
+    - uv run pytest --cov=app tests/ --cov-report=term-missing
+  coverage: '/TOTAL.*\s+(\d+%)/'
+  artifacts:
+    name: "test-coverage-report"
+    when: always
+    expire_in: 1 week
+    paths:
+      - .coverage
 
 sast:
   stage: security-check
@@ -14,5 +49,6 @@ include:
 - template: Security/Secret-Detection.gitlab-ci.yml
 variables:
   SECRET_DETECTION_ENABLED: 'true'
+
 secret_detection:
   stage: secret-detection

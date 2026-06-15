@@ -1,12 +1,12 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
+
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.core.db import AsyncSessionLocal
-from app.models import Event, Booking, BookingStatus, Payment, PaymentStatus
+from app.models import Booking, BookingStatus, Event, Payment, PaymentStatus
+
 
 async def seed_database():
     async with AsyncSessionLocal() as session:

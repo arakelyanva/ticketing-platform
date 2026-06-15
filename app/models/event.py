@@ -1,14 +1,14 @@
 from datetime import datetime, timezone
-from typing import List
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Numeric, DateTime, func, select, inspect
+from sqlalchemy import DateTime, Integer, Numeric, String, func, inspect, select
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
 from app.models.booking import Booking, BookingStatus
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -25,7 +25,7 @@ class Event(Base):
         DateTime,
         default=lambda: datetime.now(timezone.utc)
     )
-    bookings: Mapped[List["Booking"]] = relationship(back_populates="event")
+    bookings: Mapped[list["Booking"]] = relationship(back_populates="event")
 
     @hybrid_property
     def available_tickets(self) -> int:

@@ -1,11 +1,13 @@
 import asyncio
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-from app.core.db import engine
 from app.controllers.api.v1 import api_v1_router
 from app.controllers.system import router as system_router
+from app.core.db import engine
 from app.workers.bookings_worker import cleanup_expired_holds
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

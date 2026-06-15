@@ -1,9 +1,11 @@
 import asyncio
-from sqlalchemy import update
 from datetime import datetime, timezone
+
+from sqlalchemy import update
 
 from app.core.db import AsyncSessionLocal
 from app.models import Booking, BookingStatus
+
 
 async def cleanup_expired_holds():
     """Background worker that releases unpaid holds after 15 minutes."""

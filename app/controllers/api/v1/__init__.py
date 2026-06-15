@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from app.controllers.api.v1 import events, bookings
+
+from app.controllers.api.v1 import bookings, events
 
 api_v1_router = APIRouter(prefix="/api/v1")
 

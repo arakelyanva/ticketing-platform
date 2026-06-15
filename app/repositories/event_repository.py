@@ -1,20 +1,21 @@
+from datetime import datetime, timedelta, timezone
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from uuid import UUID
-from typing import List
-from datetime import datetime, timezone, timedelta
 
 from app.core.db import get_event_lock
-from app.models import Event, Booking, BookingStatus
-from app.schemas import EventCreate, EventResponse, BookingCreate, BookingResponse
 from app.exceptions import EventNotFound, TicketsUnavailable
+from app.models import Booking, BookingStatus, Event
+from app.schemas import BookingCreate, BookingResponse, EventCreate, EventResponse
+
 
 class EventRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_all(self) -> List[EventResponse]:
+    async def get_all(self) -> list[EventResponse]:
         query = (select(Event).options(selectinload(Event.bookings)))
 
         return (await self.session.scalars(query)).all()
@@ -48,18 +49,19 @@ class EventRepository:
         return event
 
     async def book_ticket(self, event_id: UUID, payload: BookingCreate) -> BookingResponse:
-        event = await self.session.get(
-            Event,
-            event_id,
-            options=[selectinload(Event.bookings)]
-        )
-
-        if not event:
-            raise EventNotFound(event_id)
-
         lock = await get_event_lock(str(event_id))
 
         async with lock:
+            event = await self.session.get(
+                Event,
+                event_id,
+                options=[selectinload(Event.bookings)],
+                populate_existing=True # Clears cache inline
+            )
+
+            if not event:
+                raise EventNotFound(event_id)
+
             # We can only book a single ticket in a single request
             if event.available_tickets < 1:
                 raise TicketsUnavailable(1, event.available_tickets)

@@ -1,8 +1,9 @@
-import os
 import asyncio
-from typing import AsyncGenerator
+import os
+from collections.abc import AsyncGenerator
+
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 load_dotenv()

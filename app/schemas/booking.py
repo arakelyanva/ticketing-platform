@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
-from datetime import datetime
-from app.models import BookingStatus
+
+from pydantic import BaseModel, Field, field_validator
+
 from app.exceptions import InvalidUserId
+
 
 class BookingCreate(BaseModel):
     user_id: UUID = Field(...)

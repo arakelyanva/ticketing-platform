@@ -16,4 +16,4 @@ async def health_check(
         await session.execute(select(1))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Infrastructure degraded: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Infrastructure degraded: {str(e)}") from e

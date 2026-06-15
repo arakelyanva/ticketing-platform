@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 from enum import Enum
 from uuid import UUID, uuid4
+
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, DateTime, ForeignKey
 
 from app.core.db import Base
+
 
 class PaymentStatus(str, Enum):
     SUCCESS = "SUCCESS",

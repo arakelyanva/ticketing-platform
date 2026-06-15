@@ -1,6 +1,8 @@
 from uuid import UUID
+
 from app.exceptions.base_exceptions import RepositoryException
 from app.models import PaymentStatus
+
 
 class IdempotencyKeyMissing(RepositoryException):
     """Raised when 'Idempotency-Key' header is missing."""
