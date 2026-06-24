@@ -10,7 +10,7 @@
 To be able to launch the project locally, you will need:
 
 - Python 3.10+
-- libuv (since project setup is using `uv`, use `pip install uv`)
+- `astral-sh/uv` (since project setup is using `uv`, use `pip install uv`)
 
 ### OR
 
